@@ -1,0 +1,125 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "debug",
+      "displayName": "Debug",
+      "description": "Debug build with warnings and smoke tests enabled",
+      "generator": "Unix Makefiles",
+      "binaryDir": "${sourceDir}/build/debug",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ROBOT_SIM_BUILD_TESTS": "ON",
+        "ROBOT_SIM_FETCH_DEPENDENCIES": "OFF"
+      }
+    },
+    {
+      "name": "debug-with-fetched-dependencies",
+      "displayName": "Debug with fetched dependencies",
+      "description": "Debug build that downloads Eigen and GoogleTest if needed",
+      "inherits": "debug",
+      "binaryDir": "${sourceDir}/build/debug-with-fetched-dependencies",
+      "cacheVariables": {
+        "ROBOT_SIM_FETCH_DEPENDENCIES": "ON"
+      }
+    },
+    {
+      "name": "ci",
+      "displayName": "CI warnings-as-errors",
+      "description": "Debug build with warnings treated as errors",
+      "inherits": "debug",
+      "binaryDir": "${sourceDir}/build/ci",
+      "cacheVariables": {
+        "ROBOT_SIM_WARNINGS_AS_ERRORS": "ON"
+      }
+    },
+    {
+      "name": "asan-ubsan",
+      "displayName": "Address and undefined behavior sanitizers",
+      "description": "Debug build with AddressSanitizer and UndefinedBehaviorSanitizer",
+      "inherits": "debug",
+      "binaryDir": "${sourceDir}/build/asan-ubsan",
+      "cacheVariables": {
+        "CMAKE_CXX_FLAGS": "-fsanitize=address,undefined -fno-omit-frame-pointer",
+        "CMAKE_EXE_LINKER_FLAGS": "-fsanitize=address,undefined",
+        "CMAKE_SHARED_LINKER_FLAGS": "-fsanitize=address,undefined"
+      }
+    },
+    {
+      "name": "viewer",
+      "displayName": "Interactive raylib viewer",
+      "description": "Debug build that fetches raylib and builds the interactive viewer",
+      "inherits": "debug",
+      "binaryDir": "${sourceDir}/build/viewer",
+      "cacheVariables": {
+        "ROBOT_SIM_FETCH_DEPENDENCIES": "ON",
+        "ROBOT_SIM_FETCH_RAYLIB": "ON",
+        "ROBOT_SIM_BUILD_VIEWER": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug"
+    },
+    {
+      "name": "debug-with-fetched-dependencies",
+      "configurePreset": "debug-with-fetched-dependencies"
+    },
+    {
+      "name": "ci",
+      "configurePreset": "ci"
+    },
+    {
+      "name": "asan-ubsan",
+      "configurePreset": "asan-ubsan"
+    },
+    {
+      "name": "viewer",
+      "configurePreset": "viewer"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "debug",
+      "configurePreset": "debug",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "debug-with-fetched-dependencies",
+      "configurePreset": "debug-with-fetched-dependencies",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "ci",
+      "configurePreset": "ci",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "asan-ubsan",
+      "configurePreset": "asan-ubsan",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "viewer",
+      "configurePreset": "viewer",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}

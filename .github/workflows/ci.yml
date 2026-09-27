@@ -1,0 +1,61 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  warnings-and-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Configure warnings-as-errors build
+        run: cmake --preset ci
+      - name: Build
+        run: cmake --build --preset ci
+      - name: Run tests
+        run: ctest --preset ci --output-on-failure
+      - name: Run documented scenario
+        run: ./build/ci/robot_sim --run maps/simple_room.map --output /tmp/robot-sim-results --seed 42
+      - name: Validate generated artifacts
+        run: |
+          python3 -m json.tool /tmp/robot-sim-results/summary.json >/dev/null
+          test -s /tmp/robot-sim-results/trace.csv
+          test -s /tmp/robot-sim-results/lidar.csv
+          test -s /tmp/robot-sim-results/map_overlay.svg
+      - name: Run benchmark smoke check
+        run: ./build/ci/robot_sim_benchmark maps/simple_room.map 20
+      - name: Check documentation workflow
+        run: |
+          test -s README.md
+          test -s docs/implementation-roadmap.md
+          grep -q -- "--run maps/simple_room.map" README.md
+          grep -q -- "asan-ubsan" README.md
+
+  sanitizers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Configure sanitizer build
+        run: cmake --preset asan-ubsan
+      - name: Build sanitizer target
+        run: cmake --build --preset asan-ubsan
+      - name: Run sanitizer tests
+        env:
+          ASAN_OPTIONS: detect_leaks=1:halt_on_error=1
+          UBSAN_OPTIONS: halt_on_error=1:print_stacktrace=1
+        run: ctest --preset asan-ubsan --output-on-failure
+
+  viewer-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Configure viewer build
+        run: cmake --preset viewer
+      - name: Build viewer
+        run: cmake --build --preset viewer
+      - name: Run viewer build tests
+        run: ctest --preset viewer --output-on-failure
