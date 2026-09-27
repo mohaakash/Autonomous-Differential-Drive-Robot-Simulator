@@ -112,7 +112,3 @@ cmake/              Dependency and build helpers
 docs/               Design contracts, verification, and viewer documentation
 .github/workflows/  Continuous integration
 ```
-
-## Project status
-
-Phases 0–8 are implemented. The current scope is a software-only 2D simulator; ROS2 integration, localization experiments, controller comparisons, and video export remain optional extensions.
