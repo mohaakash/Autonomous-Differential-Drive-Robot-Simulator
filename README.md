@@ -28,6 +28,51 @@
 
 The core simulator is headless and deterministic. The viewer is an optional presentation layer and does not control simulation time.
 
+## Maths & physics
+
+The simulator uses a compact, interpretable robotics model rather than a black-box motion approximation.
+
+### Differential-drive kinematics
+
+For wheel radius `r`, wheelbase `L`, and left/right wheel angular velocities `ωL` and `ωR`:
+
+$$
+v = \frac{r}{2}(\omega_R + \omega_L), \qquad
+\Omega = \frac{r}{L}(\omega_R - \omega_L)
+$$
+
+The inverse mapping converts a requested body twist `(v, Ω)` back to wheel commands:
+
+$$
+\omega_R = \frac{v + \frac{L}{2}\Omega}{r}, \qquad
+\omega_L = \frac{v - \frac{L}{2}\Omega}{r}
+$$
+
+Wheel limits uniformly scale both commands, preserving the requested curvature.
+
+### Exact fixed-step motion
+
+The pose is $q = (x, y, \theta)$ and simulation advances with a fixed `dt`. For a constant body twist:
+
+$$
+x' = x + \frac{v}{\Omega}\left[\sin(\theta + \Omega dt) - \sin(\theta)\right]
+$$
+
+$$
+y' = y - \frac{v}{\Omega}\left[\cos(\theta + \Omega dt) - \cos(\theta)\right],
+\qquad \theta' = \operatorname{wrapToPi}(\theta + \Omega dt)
+$$
+
+When `Ω` is near zero, the simulator uses the straight-line limit `x' = x + v cos(θ) dt` and `y' = y + v sin(θ) dt`.
+
+### Planning, control, and sensing
+
+- **A*** searches an 8-connected occupancy grid with orthogonal cost `1`, diagonal cost `√2`, and the octile heuristic. Occupied cells are checked against the robot footprint before a path is accepted.
+- **Pure pursuit** transforms the look-ahead point into the robot frame and applies `kappa = 2 y_r / L_d^2`, followed by `Omega = v kappa` and velocity limits.
+- **LiDAR** casts rays from the transformed sensor mount using `p(t) = o + t(cos(alpha), sin(alpha))`; the nearest occupied-cell intersection becomes the measured range.
+
+More detail is available in [kinematics](docs/kinematics.md), [coordinate frames](docs/coordinate-frames.md), [planning and collision](docs/planning-and-collision.md), [control and simulation](docs/control-and-simulation.md), and [sensor model](docs/sensor-model.md).
+
 ## Quick start
 
 ### Build and test the headless simulator
